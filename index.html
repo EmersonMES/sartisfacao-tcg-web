@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sartisfação TCG Database</title>
-    <!-- Tailwind CSS (CDN para Desenvolvimento) -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-900 text-white min-h-screen p-8 flex flex-col items-center font-sans">
+<body class="bg-slate-900 text-white min-h-screen p-8 flex flex-col items-center font-sans relative">
 
     <!-- Cabeçalho -->
     <div class="text-center mb-8">
@@ -27,7 +26,7 @@
 
     <!-- Barra de Busca -->
     <div class="flex w-full max-w-3xl space-x-3 mb-10">
-        <input id="input-busca" type="text" placeholder="Buscar Pokémon (ex: Blastoise)" 
+        <input id="input-busca" type="text" placeholder="Buscar Pokémon (ex: Charizard)" 
             class="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
             onkeypress="if(event.key === 'Enter') buscarCartas()">
         <button id="btn-busca" onclick="buscarCartas()" 
@@ -38,14 +37,33 @@
 
     <!-- Zona onde aparecem as cartas -->
     <div id="resultados" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-7xl">
-        <!-- Os resultados do JavaScript vão entrar aqui -->
+        <!-- Os resultados entram aqui -->
     </div>
 
-    <!-- O CÉREBRO DO SISTEMA (JAVASCRIPT) -->
-    <script>
-        let tcgAtual = 'pokemon'; // O Multiverso começa na aba Pokémon
+    <!-- O NOVO MODAL DE DETALHES (Fica escondido até clicar) -->
+    <div id="modal-detalhes" class="fixed inset-0 bg-black/85 hidden flex justify-center items-center z-50 p-4">
+        <div class="bg-slate-800 rounded-xl max-w-4xl w-full flex flex-col md:flex-row overflow-hidden border border-slate-600 shadow-2xl relative">
+            <button onclick="fecharModal()" class="absolute top-2 right-4 text-slate-400 hover:text-white text-4xl font-bold z-10">&times;</button>
+            
+            <div class="bg-slate-900 p-6 flex justify-center items-center md:w-1/2">
+                <img id="modal-img" src="" class="max-h-[450px] object-contain rounded-lg shadow-md">
+            </div>
+            
+            <div class="p-8 md:w-1/2 overflow-y-auto max-h-[500px] text-slate-300">
+                <h2 id="modal-titulo" class="text-3xl font-bold text-white mb-2">Detalhes</h2>
+                <hr class="border-slate-600 mb-4">
+                <div id="modal-info" class="space-y-3 text-sm">
+                    <!-- O Scanner vai injetar as propriedades aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
 
-        // Função 1: Controla a troca de visual e botões
+    <!-- O CÉREBRO DO SISTEMA -->
+    <script>
+        let tcgAtual = 'pokemon';
+        let cartasGlobais = []; // Guarda a memória das cartas que vieram do servidor
+
         function mudarAba(tcg) {
             tcgAtual = tcg;
             const abaPkm = document.getElementById('aba-pokemon');
@@ -56,96 +74,115 @@
             if (tcg === 'pokemon') {
                 abaPkm.className = "px-6 py-2 bg-blue-600 text-white font-bold rounded-lg border-2 border-blue-400 shadow-lg shadow-blue-500/50 transition";
                 abaOP.className = "px-6 py-2 bg-slate-800 text-slate-400 font-bold rounded-lg border-2 border-slate-700 hover:bg-red-900 hover:text-white transition";
-                inputBusca.placeholder = "Buscar Pokémon (ex: Blastoise)";
+                inputBusca.placeholder = "Buscar Pokémon (ex: Charizard)";
                 inputBusca.className = "flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition";
                 btnBusca.className = "px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 transition shadow-lg";
             } else {
                 abaOP.className = "px-6 py-2 bg-red-600 text-white font-bold rounded-lg border-2 border-red-400 shadow-lg shadow-red-500/50 transition";
                 abaPkm.className = "px-6 py-2 bg-slate-800 text-slate-400 font-bold rounded-lg border-2 border-slate-700 hover:bg-blue-900 hover:text-white transition";
-                inputBusca.placeholder = "Buscar Pirata (ex: Luffy)";
+                inputBusca.placeholder = "Buscar Pirata (ex: Zoro)";
                 inputBusca.className = "flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition";
                 btnBusca.className = "px-6 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-500 transition shadow-lg";
             }
             
-            // Limpa a tela de resultados sempre que troca de universo
             document.getElementById('resultados').innerHTML = '';
         }
 
-        // Função 2: Faz a comunicação com o Render (API) e desenha as cartas
         function buscarCartas() {
             const valorDaBusca = document.getElementById('input-busca').value.trim();
             const zonaResultados = document.getElementById('resultados');
 
-            if (valorDaBusca === '') {
-                alert("Por favor, digite um nome para buscar!");
-                return;
-            }
+            if (valorDaBusca === '') return;
 
-            // Mensagem de carregamento
-            zonaResultados.innerHTML = '<div class="col-span-full text-center text-slate-400">A vasculhar o Multiverso... aguarde.</div>';
+            zonaResultados.innerHTML = '<div class="col-span-full text-center text-slate-400 text-lg">A viajar pelo Multiverso...</div>';
 
-            // O DESVIO DE ROTAS
-            let urlBusca = '';
-            if (tcgAtual === 'pokemon') {
-                urlBusca = `https://sartisfacao-api.onrender.com/cartas/busca/${valorDaBusca}`;
-            } else {
-                urlBusca = `https://sartisfacao-api.onrender.com/api/onepiece/busca/${valorDaBusca}`;
-            }
+            let urlBusca = tcgAtual === 'pokemon' 
+                ? `https://sartisfacao-api.onrender.com/cartas/busca/${valorDaBusca}`
+                : `https://sartisfacao-api.onrender.com/api/onepiece/busca/${valorDaBusca}`;
 
-            // O FETCH CORRIGIDO E SEM ERROS DE SINTAXE
             fetch(urlBusca)
                 .then(resposta => {
-                    if (!resposta.ok) throw new Error("Nenhum resultado encontrado no servidor.");
+                    if (!resposta.ok) throw new Error("Nenhum resultado.");
                     return resposta.json();
                 })
                 .then(dados => {
-                    zonaResultados.innerHTML = ''; // Limpa a mensagem de carregamento
+                    cartasGlobais = dados; // Grava os dados para o Modal poder usar depois
+                    zonaResultados.innerHTML = ''; 
 
                     if (dados.length === 0) {
                         zonaResultados.innerHTML = '<div class="col-span-full text-center text-slate-400">Nenhuma carta encontrada.</div>';
                         return;
                     }
 
-                    // Ciclo que cria os retângulos para cada carta encontrada
-                    dados.forEach(carta => {
+                    dados.forEach((carta, index) => {
                         const cardDiv = document.createElement('div');
-                        cardDiv.className = "bg-slate-800 p-4 rounded-xl shadow-lg border border-slate-700 flex flex-col items-center hover:scale-105 transition transform";
+                        // ADICIONADO: O onclick e o cursor-pointer!
+                        cardDiv.setAttribute("onclick", `abrirModal(${index})`);
+                        cardDiv.className = "bg-slate-800 p-4 rounded-xl shadow-lg border border-slate-700 flex flex-col items-center hover:scale-105 transition transform cursor-pointer hover:border-yellow-500";
 
-                        // Lógica para detetar a imagem (O Pokémon guarda em locais diferentes do One Piece)
-                        let urlImg = 'https://via.placeholder.com/250x350?text=Sem+Imagem';
-                        if (tcgAtual === 'pokemon') {
-                            // Tenta procurar nas traduções em PT, se não houver, pega a primeira
-                            if (carta.traducoes && carta.traducoes.length > 0) {
-                                const tradPT = carta.traducoes.find((t) => t.language === 'Portuguese (Brazil)' || t.language === 'PT');
-                                urlImg = tradPT ? tradPT.url_imagem : carta.traducoes[0].url_imagem;
-                            } else if (carta.url_imagem) {
-                                urlImg = carta.url_imagem;
-                            }
-                        } else {
-                            // O One Piece já guarda a imagem direto na raiz
-                            if (carta.url_imagem) {
-                                urlImg = carta.url_imagem;
-                            }
-                        }
-                            // O "||" significa "OU". Se não encontrar 'name', tenta 'nome'.
-                        const nomeFinal = carta.name || carta.nome || 'Desconhecido';
+                        let urlImg = obterImagemDaCarta(carta);
+                        
+                        // Uma rede de segurança gigante para encontrar o nome do Pokémon
+                        const nomeFinal = carta.nome || carta.name || carta.titulo || carta.id_oficial || 'Nome Oculto';
                         const colecaoFinal = carta.colecao || carta.set_name || 'Coleção Desconhecida';
                         const idFinal = carta.id_oficial || carta.id || 'N/A';
-                        
-                        cardDiv.innerHTML = `
-                            <img src="${urlImg}" alt="${carta.nome}" class="w-full max-w-[220px] rounded-lg mb-4 object-contain shadow-md">
-                            <h2 class="text-xl font-bold text-center text-white mb-1">${carta.nome}</h2>
-                            <p class="text-sm text-slate-400 text-center">${carta.colecao || 'Coleção Desconhecida'}</p>
-                            <span class="mt-2 text-xs font-mono bg-slate-900 text-slate-300 px-2 py-1 rounded border border-slate-700">${carta.id_oficial || 'N/A'}</span>
-                        `;
 
+                        cardDiv.innerHTML = `
+                            <img src="${urlImg}" alt="Carta" class="w-full max-w-[220px] rounded-lg mb-4 object-contain shadow-md">
+                            <h2 class="text-xl font-bold text-center text-white mb-1">${nomeFinal}</h2>
+                            <p class="text-sm text-slate-400 text-center">${colecaoFinal}</p>
+                            <span class="mt-2 text-xs font-mono bg-slate-900 text-slate-300 px-2 py-1 rounded border border-slate-700">${idFinal}</span>
+                        `;
                         zonaResultados.appendChild(cardDiv);
                     });
                 })
                 .catch(erro => {
-                    console.error("❌ Erro no sistema:", erro);
-                    zonaResultados.innerHTML = `<div class="col-span-full text-center text-red-400 font-bold">Erro: ${erro.message}</div>`;
+                    zonaResultados.innerHTML = `<div class="col-span-full text-center text-red-400">Erro: ${erro.message}</div>`;
                 });
+        }
+
+        // Função utilitária para capturar a imagem
+        function obterImagemDaCarta(carta) {
+            if (tcgAtual === 'pokemon') {
+                if (carta.traducoes && carta.traducoes.length > 0) {
+                    const tradPT = carta.traducoes.find((t) => t.language === 'Portuguese (Brazil)' || t.language === 'PT');
+                    return tradPT ? tradPT.url_imagem : carta.traducoes[0].url_imagem;
+                }
+                return carta.url_imagem || 'https://via.placeholder.com/250x350?text=Sem+Imagem';
+            } else {
+                return carta.url_imagem || 'https://via.placeholder.com/250x350?text=Sem+Imagem';
+            }
+        }
+
+        // A MAGIA DO MODAL
+        function abrirModal(index) {
+            const carta = cartasGlobais[index]; // Vai buscar a carta exata em que clicou
+            
+            document.getElementById('modal-img').src = obterImagemDaCarta(carta);
+            
+            const tituloFinal = carta.nome || carta.name || carta.titulo || carta.id_oficial || 'Detalhes da Carta';
+            document.getElementById('modal-titulo').innerText = tituloFinal;
+
+            let infoHTML = '';
+            
+            // O Scanner: Lê todas as propriedades que vieram do banco de dados e desenha-as
+            for (const [chave, valor] of Object.entries(carta)) {
+                // Ignora campos vazios, imagens ou objetos complexos
+                if (valor !== null && valor !== '' && typeof valor !== 'object' && chave !== 'url_imagem' && chave !== 'id' && chave !== 'name' && chave !== 'nome') {
+                    // Limpa o nome da propriedade (ex: id_oficial vira "Id Oficial")
+                    const label = chave.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    infoHTML += `<p><strong class="text-yellow-400">${label}:</strong> <span class="text-white">${valor}</span></p>`;
+                }
+            }
+
+            document.getElementById('modal-info').innerHTML = infoHTML;
+            
+            // Mostra o modal na tela
+            document.getElementById('modal-detalhes').classList.remove('hidden');
+        }
+
+        function fecharModal() {
+            document.getElementById('modal-detalhes').classList.add('hidden');
         }
     </script>
 </body>
