@@ -14,6 +14,16 @@
         <p class="text-slate-400 text-sm">Motor Global de Busca (Multiverso)</p>
     </div>
 
+    <!-- SISTEMA DE ABAS DO MULTIVERSO -->
+    <div class="flex justify-center space-x-4 mb-6 mt-4">
+        <button id="aba-pokemon" onclick="mudarAba('pokemon')" class="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg border-2 border-blue-400 shadow-lg shadow-blue-500/50 transition">
+        Pokémon TCG
+        </button>
+        <button id="aba-onepiece" onclick="mudarAba('onepiece')" class="px-6 py-2 bg-gray-800 text-gray-400 font-bold rounded-lg border-2 border-gray-700 hover:bg-red-900 hover:text-white transition">
+        One Piece TCG
+        </button>
+    </div>
+
     <!-- Barra de Busca -->
     <div class="flex gap-4 mb-6">
         <input type="text" id="inputBusca" value="Blastoise" 
@@ -64,6 +74,30 @@
 
     <!-- JAVASCRIPT -->
     <script>
+        let tcgAtual = 'pokemon'; // O site começa sempre no Pokémon
+
+function mudarAba(tcg) {
+    tcgAtual = tcg;
+    const abaPkm = document.getElementById('aba-pokemon');
+    const abaOP = document.getElementById('aba-onepiece');
+    const inputBusca = document.getElementById('input-busca'); // ajuste o ID se o seu for diferente
+    
+    if (tcg === 'pokemon') {
+        // Estilo Aba Ativa Pokémon
+        abaPkm.className = "px-6 py-2 bg-blue-600 text-white font-bold rounded-lg border-2 border-blue-400 shadow-lg shadow-blue-500/50 transition";
+        abaOP.className = "px-6 py-2 bg-gray-800 text-gray-400 font-bold rounded-lg border-2 border-gray-700 hover:bg-red-900 hover:text-white transition";
+        if (inputBusca) inputBusca.placeholder = "Buscar Pokémon (ex: Blastoise)";
+    } else {
+        // Estilo Aba Ativa One Piece
+        abaOP.className = "px-6 py-2 bg-red-600 text-white font-bold rounded-lg border-2 border-red-400 shadow-lg shadow-red-500/50 transition";
+        abaPkm.className = "px-6 py-2 bg-gray-800 text-gray-400 font-bold rounded-lg border-2 border-gray-700 hover:bg-blue-900 hover:text-white transition";
+        if (inputBusca) inputBusca.placeholder = "Buscar Pirata (ex: Luffy)";
+    }
+    
+    // Opcional: Limpar a tela quando troca de aba
+    // document.getElementById('resultados').innerHTML = ''; 
+}
+
         const btnBuscar = document.getElementById('btnBuscar');
         const inputBusca = document.getElementById('inputBusca');
         const mensagemErro = document.getElementById('mensagemErro');
@@ -158,7 +192,16 @@
             if(velhaBarra) velhaBarra.remove();
 
             try {
-                const resposta = await fetch(`https://sartisfacao-api.onrender.com/cartas/busca/${nomePokemon}`);
+                const resposta = await fetch(let urlBusca = '';
+            if (tcgAtual === 'pokemon') {
+                urlBusca = `https://sartisfacao-api.onrender.com/cartas/busca/${valorDaBusca}`;
+            } else {
+                urlBusca = `https://sartisfacao-api.onrender.com/api/onepiece/busca/${valorDaBusca}`;
+            });
+
+            // O seu fetch agora usa a url dinâmica
+            fetch(urlBusca)
+                .then(resposta => ...)
                 const dados = await resposta.json();
 
                 if (!resposta.ok) {
