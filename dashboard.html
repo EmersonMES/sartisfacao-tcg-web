@@ -4,50 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sartisfação TCG - Progressão</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 p-8 font-sans flex flex-col items-center min-h-screen">
+<body class="bg-slate-900 text-white p-8 font-sans flex flex-col items-center min-h-screen">
     
-    <!-- Cabeçalho -->
-    <div class="text-center mb-6">
-        <h1 class="text-4xl font-extrabold text-slate-900 mb-2 drop-shadow-sm">Sartisfação TCG - Progressão</h1>
-        <p class="text-slate-500 font-medium">Centro de Comando do Multiverso</p>
+    <!-- Cabeçalho (Combinando com o index.html) -->
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-extrabold text-yellow-400 mb-2 drop-shadow-md">Sartisfação TCG - Progressão</h1>
+        <p class="text-slate-400 font-medium">Centro de Comando do Multiverso</p>
     </div>
 
-    <!-- SISTEMA DE ABAS DO DASHBOARD -->
-    <div class="flex justify-center space-x-4 mb-8">
+    <!-- SISTEMA DE ABAS -->
+    <div class="flex justify-center space-x-4 mb-10">
         <button id="aba-pokemon" onclick="mudarAba('pokemon')" class="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg border-2 border-blue-400 shadow-lg shadow-blue-500/50 transition transform hover:scale-105">
             Pokémon TCG
         </button>
-        <button id="aba-onepiece" onclick="mudarAba('onepiece')" class="px-6 py-2 bg-slate-300 text-slate-600 font-bold rounded-lg border-2 border-slate-400 hover:bg-red-600 hover:text-white hover:border-red-400 transition transform hover:scale-105">
+        <button id="aba-onepiece" onclick="mudarAba('onepiece')" class="px-6 py-2 bg-slate-800 text-slate-400 font-bold rounded-lg border-2 border-slate-700 hover:bg-red-900 hover:text-white hover:border-red-500 transition transform hover:scale-105">
             One Piece TCG
         </button>
     </div>
 
     <!-- Status de Carregamento -->
-    <div id="loading" class="text-lg font-bold text-blue-600 animate-pulse mb-4">
-        A carregar dados do Multiverso... aguarde.
+    <div id="loading" class="text-lg font-bold text-yellow-500 animate-pulse mb-4">
+        A sincronizar com o Multiverso... aguarde.
     </div>
 
-    <!-- A Tabela de Estatísticas -->
-    <div class="w-full max-w-[95vw] overflow-x-auto bg-white shadow-xl rounded-xl border border-slate-200 hidden" id="container-tabela">
+    <!-- A Tabela de Estatísticas Premium -->
+    <div class="w-full max-w-[95vw] overflow-x-auto bg-slate-800 shadow-2xl rounded-xl border border-slate-700 hidden custom-scrollbar" id="container-tabela">
         <table class="w-full text-sm text-left whitespace-nowrap" id="tabela-dashboard">
-            <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-300" id="tabela-head">
+            <thead class="bg-slate-950 text-slate-300 font-bold border-b border-slate-700 uppercase tracking-wider text-xs" id="tabela-head">
                 <!-- Injetado pelo JavaScript -->
             </thead>
-            <tbody class="divide-y divide-slate-100" id="tabela-body">
+            <tbody class="divide-y divide-slate-700" id="tabela-body">
                 <!-- Injetado pelo JavaScript -->
             </tbody>
         </table>
     </div>
 
-    <!-- O Cérebro do Dashboard -->
+    <style>
+        /* Estilização da barra de scroll para combinar com o Dark Mode */
+        .custom-scrollbar::-webkit-scrollbar { height: 10px; width: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; border-radius: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+
     <script>
         let dadosGlobais = null;
-        let tcgAtual = 'pokemon'; // Aba padrão
+        let tcgAtual = 'pokemon'; 
 
-        // 1. Controla o Visual das Abas
         function mudarAba(tcg) {
             tcgAtual = tcg;
             const abaPkm = document.getElementById('aba-pokemon');
@@ -55,20 +60,17 @@
             
             if (tcg === 'pokemon') {
                 abaPkm.className = "px-6 py-2 bg-blue-600 text-white font-bold rounded-lg border-2 border-blue-400 shadow-lg shadow-blue-500/50 transition transform hover:scale-105";
-                abaOP.className = "px-6 py-2 bg-slate-300 text-slate-600 font-bold rounded-lg border-2 border-slate-400 hover:bg-red-600 hover:text-white hover:border-red-400 transition transform hover:scale-105";
+                abaOP.className = "px-6 py-2 bg-slate-800 text-slate-400 font-bold rounded-lg border-2 border-slate-700 hover:bg-red-900 hover:text-white hover:border-red-500 transition transform hover:scale-105";
             } else {
                 abaOP.className = "px-6 py-2 bg-red-600 text-white font-bold rounded-lg border-2 border-red-400 shadow-lg shadow-red-500/50 transition transform hover:scale-105";
-                abaPkm.className = "px-6 py-2 bg-slate-300 text-slate-600 font-bold rounded-lg border-2 border-slate-400 hover:bg-blue-600 hover:text-white hover:border-blue-400 transition transform hover:scale-105";
+                abaPkm.className = "px-6 py-2 bg-slate-800 text-slate-400 font-bold rounded-lg border-2 border-slate-700 hover:bg-blue-900 hover:text-white hover:border-blue-500 transition transform hover:scale-105";
             }
             
-            // Se os dados já chegaram, redesenha a tabela instantaneamente
             if (dadosGlobais) renderizarTabela();
         }
 
-        // 2. Busca os Dados no Servidor Apenas Uma Vez
         async function carregarDashboard() {
             try {
-                // Se a sua API estiver em outro link, ajuste aqui
                 const resposta = await fetch('https://sartisfacao-api.onrender.com/api/dashboard');
                 if (!resposta.ok) throw new Error("Falha na ligação à API.");
                 
@@ -83,7 +85,21 @@
             }
         }
 
-        // 3. Desenha a Tabela Filtrada
+        // Função geradora de barras de progresso
+        function criarBarraProgresso(percentagem, tipo) {
+            let corBarra = percentagem == 100 ? 'bg-green-500' : (percentagem > 0 ? (tipo === 'cartas' ? 'bg-purple-500' : 'bg-blue-500') : 'bg-slate-600');
+            let corTexto = percentagem == 100 ? 'text-green-400' : (percentagem > 0 ? 'text-white' : 'text-slate-500');
+            
+            return `
+                <div class="flex flex-col items-center justify-center w-full min-w-[100px]">
+                    <div class="text-sm font-bold ${corTexto} mb-1">${percentagem}%</div>
+                    <div class="w-full bg-slate-900 rounded-full h-2 mb-1 shadow-inner border border-slate-700 overflow-hidden">
+                        <div class="${corBarra} h-2 rounded-full transition-all duration-1000" style="width: ${percentagem}%"></div>
+                    </div>
+                </div>
+            `;
+        }
+
         function renderizarTabela() {
             const thead = document.getElementById('tabela-head');
             const tbody = document.getElementById('tabela-body');
@@ -91,61 +107,70 @@
             thead.innerHTML = '';
             tbody.innerHTML = '';
 
-            // O FILTRO MÁGICO: Separa as coleções baseado na aba
+            // 1. Filtrar as coleções
             const colecoesFiltradas = dadosGlobais.colecoes.filter(c => {
                 const eOnePiece = c.nome.startsWith('One Piece: ');
                 return tcgAtual === 'pokemon' ? !eOnePiece : eOnePiece;
             });
 
-            // Construção do Cabeçalho (Idiomas)
-            let headerHTML = '<tr><th class="p-4 bg-white sticky left-0 z-20 shadow-[1px_0_0_0_#cbd5e1]">Coleções</th>';
-            dadosGlobais.idiomasAtivos.forEach(idioma => {
-                headerHTML += `<th class="p-4 text-center border-l border-slate-300 bg-slate-100 z-10" colspan="2">${idioma}</th>`;
+            // 2. MAGIA: Descobrir quais idiomas REALMENTE têm cartas nesta aba!
+            let idiomasAtivosNestaAba = new Set();
+            colecoesFiltradas.forEach(set => {
+                Object.keys(set.idiomas).forEach(idioma => {
+                    if (set.idiomas[idioma].cards > 0) {
+                        idiomasAtivosNestaAba.add(idioma);
+                    }
+                });
             });
-            headerHTML += '</tr><tr class="text-xs text-slate-500"><th class="bg-white sticky left-0 z-20 shadow-[1px_0_0_0_#cbd5e1]"></th>';
-            dadosGlobais.idiomasAtivos.forEach(() => {
-                headerHTML += `<th class="p-2 border-l border-slate-200 text-center bg-slate-50">Cartas</th><th class="p-2 border-l border-slate-200 text-center bg-slate-50">Imagens</th>`;
+            let idiomasParaMostrar = Array.from(idiomasAtivosNestaAba).sort();
+            
+            // Se por acaso não houver nenhum, cai num idioma padrão para não bugar a tabela
+            if (idiomasParaMostrar.length === 0) idiomasParaMostrar = ['English'];
+
+            // 3. Desenhar Cabeçalho Dinâmico
+            let headerHTML = '<tr><th class="p-5 bg-slate-950 sticky left-0 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.8)] border-r border-slate-700 text-yellow-400">Coleções</th>';
+            
+            idiomasParaMostrar.forEach(idioma => {
+                headerHTML += `<th class="p-4 text-center border-l border-slate-700 bg-slate-900 z-10" colspan="2">${idioma}</th>`;
+            });
+            headerHTML += '</tr><tr class="text-[10px] text-slate-400"><th class="bg-slate-950 sticky left-0 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.8)] border-r border-slate-700"></th>';
+            
+            idiomasParaMostrar.forEach(() => {
+                headerHTML += `<th class="p-2 border-l border-slate-700 text-center bg-slate-800">Cartas Salvas</th><th class="p-2 border-l border-slate-700 text-center bg-slate-800">Imagens</th>`;
             });
             headerHTML += '</tr>';
             thead.innerHTML = headerHTML;
 
-            // Tratamento caso o banco esteja vazio
             if (colecoesFiltradas.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="100" class="p-10 text-center text-slate-500 text-lg">Nenhuma coleção encontrada no Universo ${tcgAtual === 'pokemon' ? 'Pokémon' : 'One Piece'}.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="100" class="p-10 text-center text-slate-500 text-lg">Nenhuma coleção encontrada.</td></tr>`;
                 return;
             }
 
-            // Construção das Linhas (Coleções)
+            // 4. Desenhar as Linhas com Barras de Progresso
             colecoesFiltradas.forEach(set => {
-                // Remove o "One Piece: " do nome para ficar limpo na tela
                 const nomeExibicao = set.nome.replace('One Piece: ', '');
                 
-                let rowHTML = `<tr class="hover:bg-slate-50 transition">
-                    <td class="p-4 bg-white sticky left-0 z-10 shadow-[1px_0_0_0_#cbd5e1] group-hover:bg-slate-50">
-                        <div class="font-bold text-slate-800 text-base">${nomeExibicao}</div>
-                        <div class="text-xs text-slate-500">${set.totalOficial} cartas oficiais</div>
+                let rowHTML = `<tr class="hover:bg-slate-700/50 transition group">
+                    <td class="p-5 bg-slate-800 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.8)] group-hover:bg-slate-700 border-r border-slate-700">
+                        <div class="font-bold text-white text-base truncate max-w-[250px]">${nomeExibicao}</div>
+                        <div class="text-xs text-slate-400 mt-1"><span class="text-yellow-500 font-mono">${set.totalOficial}</span> cartas oficiais</div>
                     </td>`;
                 
-                dadosGlobais.idiomasAtivos.forEach(idioma => {
+                idiomasParaMostrar.forEach(idioma => {
                     const stats = set.idiomas[idioma] || { cards: 0, images: 0 };
                     
                     const percCards = set.totalOficial > 0 ? ((stats.cards / set.totalOficial) * 100).toFixed(2) : 0;
-                    // Prevenção de divisão por zero caso a coleção não tenha cartas oficias registadas corretamente
                     const limiteImagens = stats.cards > 0 ? stats.cards : 1; 
                     const percImages = stats.cards > 0 ? ((stats.images / limiteImagens) * 100).toFixed(2) : 0;
                     
-                    // Cores Dinâmicas (Verde = 100%, Roxo = Incompleto, Vermelho = 0%)
-                    let corCards = percCards == 100 ? 'bg-green-100 text-green-700' : (percCards > 0 ? 'bg-purple-100 text-purple-700' : 'bg-red-100 text-red-700');
-                    let corImages = percImages == 100 ? 'bg-green-100 text-green-700' : (percImages > 0 ? 'bg-purple-100 text-purple-700' : 'bg-red-100 text-red-700');
-
                     rowHTML += `
-                        <td class="p-2 border-l border-slate-200 text-center text-xs font-mono font-bold ${corCards}">
-                            <div class="text-sm">${percCards}%</div>
-                            <div class="font-normal opacity-70">(${stats.cards} / ${set.totalOficial})</div>
+                        <td class="p-4 border-l border-slate-700 text-center align-middle">
+                            ${criarBarraProgresso(percCards, 'cartas')}
+                            <div class="font-normal text-slate-400 text-[11px] mt-1">(${stats.cards} / ${set.totalOficial})</div>
                         </td>
-                        <td class="p-2 border-l border-slate-200 text-center text-xs font-mono font-bold ${corImages}">
-                            <div class="text-sm">${percImages}%</div>
-                            <div class="font-normal opacity-70">(${stats.images} / ${stats.cards})</div>
+                        <td class="p-4 border-l border-slate-700 text-center align-middle">
+                            ${criarBarraProgresso(percImages, 'imagens')}
+                            <div class="font-normal text-slate-400 text-[11px] mt-1">(${stats.images} / ${stats.cards})</div>
                         </td>
                     `;
                 });
@@ -154,7 +179,6 @@
             });
         }
 
-        // Dá o arranque ao motor quando a página abre
         carregarDashboard();
     </script>
 </body>
