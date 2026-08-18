@@ -127,7 +127,11 @@
                                 urlImg = carta.url_imagem;
                             }
                         }
-
+                            // O "||" significa "OU". Se não encontrar 'name', tenta 'nome'.
+                        const nomeFinal = carta.name || carta.nome || 'Desconhecido';
+                        const colecaoFinal = carta.colecao || carta.set_name || 'Coleção Desconhecida';
+                        const idFinal = carta.id_oficial || carta.id || 'N/A';
+                        
                         cardDiv.innerHTML = `
                             <img src="${urlImg}" alt="${carta.nome}" class="w-full max-w-[220px] rounded-lg mb-4 object-contain shadow-md">
                             <h2 class="text-xl font-bold text-center text-white mb-1">${carta.nome}</h2>
