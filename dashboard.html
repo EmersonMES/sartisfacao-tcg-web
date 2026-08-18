@@ -1,156 +1,160 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sartisfação TCG - Painel de Controle</title>
+    <title>Sartisfação TCG - Progressão</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Paleta de Cores Elegantes para os Status */
-        .bg-100 { background-color: #4ade80; color: #064e3b; } /* Verde de Sucesso */
-        .bg-partial { background-color: #c4b5fd; color: #2e1065; } /* Roxo de Progresso */
-        .bg-zero { background-color: #fecaca; color: #7f1d1d; } /* Vermelho de Vazio */
-        
-        /* A Mágica de Layout que impede o esmagamento */
-        .table-container {
-            max-height: 85vh; /* Permite scroll para baixo */
-            overflow: auto; /* Permite scroll para a direita */
-        }
-        
-        table { 
-            border-collapse: separate; 
-            border-spacing: 0; 
-            width: 100%; 
-            min-width: max-content; /* Impede a tabela de encolher! */
-        }
-        
-        th, td { 
-            border-right: 1px solid #cbd5e1; 
-            border-bottom: 1px solid #cbd5e1; 
-            text-align: center; 
-            padding: 8px 12px; 
-            font-size: 0.85rem; 
-        }
-        
-        th { background-color: #f1f5f9; color: #0f172a; border-top: 1px solid #cbd5e1; }
-        
-        /* Congela a Primeira Coluna (Nomes das Coleções) */
-        .sticky-col {
-            position: sticky;
-            left: 0;
-            background-color: #ffffff;
-            z-index: 10;
-            border-left: 1px solid #cbd5e1;
-            box-shadow: 3px 0 5px rgba(0,0,0,0.05);
-        }
-        
-        /* Congela o Cabeçalho (Idiomas) */
-        thead th {
-            position: sticky;
-            top: 0;
-            z-index: 5;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        
-        /* O Canto Superior Esquerdo precisa sobrepor tudo */
-        thead th.sticky-col {
-            z-index: 15;
-            background-color: #f8fafc;
-        }
-    </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen p-4 md:p-8 font-sans">
-
-    <div class="max-w-[98%] mx-auto">
-        <h1 class="text-4xl font-extrabold text-center mb-2 text-slate-800">Sartisfação TCG - Progressão</h1>
-        <p class="text-center text-slate-500 mb-6 font-medium">Centro de Comando do Multiverso</p>
-
-        <!-- Container Limitador que gera o Scroll -->
-        <div class="table-container shadow-2xl rounded-xl bg-white border border-slate-300">
-            <table id="tabelaProgresso">
-                <thead id="cabecalhoTabela">
-                    <!-- Gerado dinamicamente -->
-                </thead>
-                <tbody id="corpoTabela">
-                    <!-- Gerado dinamicamente -->
-                </tbody>
-            </table>
-        </div>
+<body class="bg-slate-50 text-slate-800 p-8 font-sans flex flex-col items-center min-h-screen">
+    
+    <!-- Cabeçalho -->
+    <div class="text-center mb-6">
+        <h1 class="text-4xl font-extrabold text-slate-900 mb-2 drop-shadow-sm">Sartisfação TCG - Progressão</h1>
+        <p class="text-slate-500 font-medium">Centro de Comando do Multiverso</p>
     </div>
 
+    <!-- SISTEMA DE ABAS DO DASHBOARD -->
+    <div class="flex justify-center space-x-4 mb-8">
+        <button id="aba-pokemon" onclick="mudarAba('pokemon')" class="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg border-2 border-blue-400 shadow-lg shadow-blue-500/50 transition transform hover:scale-105">
+            Pokémon TCG
+        </button>
+        <button id="aba-onepiece" onclick="mudarAba('onepiece')" class="px-6 py-2 bg-slate-300 text-slate-600 font-bold rounded-lg border-2 border-slate-400 hover:bg-red-600 hover:text-white hover:border-red-400 transition transform hover:scale-105">
+            One Piece TCG
+        </button>
+    </div>
+
+    <!-- Status de Carregamento -->
+    <div id="loading" class="text-lg font-bold text-blue-600 animate-pulse mb-4">
+        A carregar dados do Multiverso... aguarde.
+    </div>
+
+    <!-- A Tabela de Estatísticas -->
+    <div class="w-full max-w-[95vw] overflow-x-auto bg-white shadow-xl rounded-xl border border-slate-200 hidden" id="container-tabela">
+        <table class="w-full text-sm text-left whitespace-nowrap" id="tabela-dashboard">
+            <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-300" id="tabela-head">
+                <!-- Injetado pelo JavaScript -->
+            </thead>
+            <tbody class="divide-y divide-slate-100" id="tabela-body">
+                <!-- Injetado pelo JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- O Cérebro do Dashboard -->
     <script>
-        // Inteligência das Cores
-        function obterClasseCor(valor, total) {
-            if (total === 0 || valor === 0) return 'bg-zero';
-            if (valor >= total) return 'bg-100'; // 100% ou mais
-            return 'bg-partial'; // Alguma coisa pelo meio
+        let dadosGlobais = null;
+        let tcgAtual = 'pokemon'; // Aba padrão
+
+        // 1. Controla o Visual das Abas
+        function mudarAba(tcg) {
+            tcgAtual = tcg;
+            const abaPkm = document.getElementById('aba-pokemon');
+            const abaOP = document.getElementById('aba-onepiece');
+            
+            if (tcg === 'pokemon') {
+                abaPkm.className = "px-6 py-2 bg-blue-600 text-white font-bold rounded-lg border-2 border-blue-400 shadow-lg shadow-blue-500/50 transition transform hover:scale-105";
+                abaOP.className = "px-6 py-2 bg-slate-300 text-slate-600 font-bold rounded-lg border-2 border-slate-400 hover:bg-red-600 hover:text-white hover:border-red-400 transition transform hover:scale-105";
+            } else {
+                abaOP.className = "px-6 py-2 bg-red-600 text-white font-bold rounded-lg border-2 border-red-400 shadow-lg shadow-red-500/50 transition transform hover:scale-105";
+                abaPkm.className = "px-6 py-2 bg-slate-300 text-slate-600 font-bold rounded-lg border-2 border-slate-400 hover:bg-blue-600 hover:text-white hover:border-blue-400 transition transform hover:scale-105";
+            }
+            
+            // Se os dados já chegaram, redesenha a tabela instantaneamente
+            if (dadosGlobais) renderizarTabela();
         }
 
-        // Formatação Limpa dos Textos
-        function formatarCelula(valor, total) {
-            if (total === 0) return `<span class="font-bold">0.00%</span><br><span class="text-[10px] opacity-75">(0)</span>`;
-            const percent = ((valor / total) * 100).toFixed(2);
-            return `<span class="font-bold">${percent}%</span><br><span class="text-[10px] opacity-75">(${valor} / ${total})</span>`;
-        }
-
+        // 2. Busca os Dados no Servidor Apenas Uma Vez
         async function carregarDashboard() {
             try {
+                // Se a sua API estiver em outro link, ajuste aqui
                 const resposta = await fetch('https://sartisfacao-api.onrender.com/api/dashboard');
-                const dados = await resposta.json();
-
-                const idiomas = dados.idiomasAtivos;
-                const colecoes = dados.colecoes;
-
-                const thead = document.getElementById('cabecalhoTabela');
-                const tbody = document.getElementById('corpoTabela');
-
-                // 1. MONTAGEM DO CABEÇALHO DUPLO
-                let linha1 = `<tr><th rowspan="2" class="sticky-col min-w-[220px] text-left pl-4 font-bold text-base">Coleções</th>`;
-                let linha2 = `<tr>`;
-
-                idiomas.forEach(lang => {
-                    linha1 += `<th colspan="2" class="text-sm font-bold text-slate-800 bg-slate-200">${lang}</th>`;
-                    linha2 += `<th class="bg-slate-100 text-slate-600">Cartas</th><th class="bg-slate-100 text-slate-600">Imagens</th>`;
-                });
-                linha1 += `</tr>`;
-                linha2 += `</tr>`;
+                if (!resposta.ok) throw new Error("Falha na ligação à API.");
                 
-                thead.innerHTML = linha1 + linha2;
-
-                // 2. MONTAGEM DAS LINHAS DE COLEÇÕES
-                let htmlCorpo = '';
-
-                colecoes.forEach(set => {
-                    htmlCorpo += `<tr class="hover:bg-slate-50 transition-colors">`;
-                    
-                    // Coluna Fixa do Nome
-                    htmlCorpo += `<td class="sticky-col text-left">
-                                    <div class="font-bold text-slate-800">${set.nome}</div>
-                                    <div class="text-xs text-slate-500 font-medium">${set.totalOficial} cartas oficiais</div>
-                                  </td>`;
-
-                    // Colunas de Dados dos Idiomas
-                    idiomas.forEach(lang => {
-                        const dadosLang = set.idiomas[lang] || { cards: 0, images: 0 };
-                        
-                        const corCards = obterClasseCor(dadosLang.cards, set.totalOficial);
-                        htmlCorpo += `<td class="${corCards}">${formatarCelula(dadosLang.cards, set.totalOficial)}</td>`;
-                        
-                        const corImages = obterClasseCor(dadosLang.images, set.totalOficial);
-                        htmlCorpo += `<td class="${corImages}">${formatarCelula(dadosLang.images, set.totalOficial)}</td>`;
-                    });
-
-                    htmlCorpo += `</tr>`;
-                });
-
-                tbody.innerHTML = htmlCorpo;
-
+                dadosGlobais = await resposta.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('container-tabela').classList.remove('hidden');
+                
+                renderizarTabela();
             } catch (erro) {
-                console.error("Erro:", erro);
-                document.getElementById('cabecalhoTabela').innerHTML = `<tr><td class="text-red-500 font-bold p-8 text-center bg-white sticky-col">❌ Erro de Ligação. Verifique se a sua API (npm run dev) está ligada!</td></tr>`;
+                document.getElementById('loading').innerHTML = `<span class="text-red-500 font-bold flex items-center justify-center">❌ Erro de Ligação: ${erro.message}</span>`;
             }
         }
 
+        // 3. Desenha a Tabela Filtrada
+        function renderizarTabela() {
+            const thead = document.getElementById('tabela-head');
+            const tbody = document.getElementById('tabela-body');
+            
+            thead.innerHTML = '';
+            tbody.innerHTML = '';
+
+            // O FILTRO MÁGICO: Separa as coleções baseado na aba
+            const colecoesFiltradas = dadosGlobais.colecoes.filter(c => {
+                const eOnePiece = c.nome.startsWith('One Piece: ');
+                return tcgAtual === 'pokemon' ? !eOnePiece : eOnePiece;
+            });
+
+            // Construção do Cabeçalho (Idiomas)
+            let headerHTML = '<tr><th class="p-4 bg-white sticky left-0 z-20 shadow-[1px_0_0_0_#cbd5e1]">Coleções</th>';
+            dadosGlobais.idiomasAtivos.forEach(idioma => {
+                headerHTML += `<th class="p-4 text-center border-l border-slate-300 bg-slate-100 z-10" colspan="2">${idioma}</th>`;
+            });
+            headerHTML += '</tr><tr class="text-xs text-slate-500"><th class="bg-white sticky left-0 z-20 shadow-[1px_0_0_0_#cbd5e1]"></th>';
+            dadosGlobais.idiomasAtivos.forEach(() => {
+                headerHTML += `<th class="p-2 border-l border-slate-200 text-center bg-slate-50">Cartas</th><th class="p-2 border-l border-slate-200 text-center bg-slate-50">Imagens</th>`;
+            });
+            headerHTML += '</tr>';
+            thead.innerHTML = headerHTML;
+
+            // Tratamento caso o banco esteja vazio
+            if (colecoesFiltradas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="100" class="p-10 text-center text-slate-500 text-lg">Nenhuma coleção encontrada no Universo ${tcgAtual === 'pokemon' ? 'Pokémon' : 'One Piece'}.</td></tr>`;
+                return;
+            }
+
+            // Construção das Linhas (Coleções)
+            colecoesFiltradas.forEach(set => {
+                // Remove o "One Piece: " do nome para ficar limpo na tela
+                const nomeExibicao = set.nome.replace('One Piece: ', '');
+                
+                let rowHTML = `<tr class="hover:bg-slate-50 transition">
+                    <td class="p-4 bg-white sticky left-0 z-10 shadow-[1px_0_0_0_#cbd5e1] group-hover:bg-slate-50">
+                        <div class="font-bold text-slate-800 text-base">${nomeExibicao}</div>
+                        <div class="text-xs text-slate-500">${set.totalOficial} cartas oficiais</div>
+                    </td>`;
+                
+                dadosGlobais.idiomasAtivos.forEach(idioma => {
+                    const stats = set.idiomas[idioma] || { cards: 0, images: 0 };
+                    
+                    const percCards = set.totalOficial > 0 ? ((stats.cards / set.totalOficial) * 100).toFixed(2) : 0;
+                    // Prevenção de divisão por zero caso a coleção não tenha cartas oficias registadas corretamente
+                    const limiteImagens = stats.cards > 0 ? stats.cards : 1; 
+                    const percImages = stats.cards > 0 ? ((stats.images / limiteImagens) * 100).toFixed(2) : 0;
+                    
+                    // Cores Dinâmicas (Verde = 100%, Roxo = Incompleto, Vermelho = 0%)
+                    let corCards = percCards == 100 ? 'bg-green-100 text-green-700' : (percCards > 0 ? 'bg-purple-100 text-purple-700' : 'bg-red-100 text-red-700');
+                    let corImages = percImages == 100 ? 'bg-green-100 text-green-700' : (percImages > 0 ? 'bg-purple-100 text-purple-700' : 'bg-red-100 text-red-700');
+
+                    rowHTML += `
+                        <td class="p-2 border-l border-slate-200 text-center text-xs font-mono font-bold ${corCards}">
+                            <div class="text-sm">${percCards}%</div>
+                            <div class="font-normal opacity-70">(${stats.cards} / ${set.totalOficial})</div>
+                        </td>
+                        <td class="p-2 border-l border-slate-200 text-center text-xs font-mono font-bold ${corImages}">
+                            <div class="text-sm">${percImages}%</div>
+                            <div class="font-normal opacity-70">(${stats.images} / ${stats.cards})</div>
+                        </td>
+                    `;
+                });
+                rowHTML += '</tr>';
+                tbody.insertAdjacentHTML('beforeend', rowHTML);
+            });
+        }
+
+        // Dá o arranque ao motor quando a página abre
         carregarDashboard();
     </script>
 </body>
