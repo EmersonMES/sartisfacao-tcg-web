@@ -5,54 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sartisfação TCG - Progressão</title>
     <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<!-- O body agora bloqueia o scroll da página inteira (h-screen overflow-hidden) -->
-<body class="bg-slate-900 text-white p-6 md:p-8 font-sans flex flex-col items-center h-screen overflow-hidden">
-    
-    <!-- Cabeçalho Fixo -->
-    <div class="text-center mb-6 shrink-0">
-        <h1 class="text-4xl font-extrabold text-yellow-400 mb-2 drop-shadow-md">Sartisfação TCG - Progressão</h1>
-        <p class="text-slate-400 font-medium">Centro de Comando do Multiverso</p>
-    </div>
-
-    <!-- Sistema de Abas Fixo -->
-    <div class="flex justify-center space-x-4 mb-6 shrink-0">
-        <button id="aba-pokemon" onclick="mudarAba('pokemon')" class="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg border-2 border-blue-400 shadow-lg shadow-blue-500/50 transition transform hover:scale-105">
-            Pokémon TCG
-        </button>
-        <button id="aba-onepiece" onclick="mudarAba('onepiece')" class="px-6 py-2 bg-slate-800 text-slate-400 font-bold rounded-lg border-2 border-slate-700 hover:bg-red-900 hover:text-white hover:border-red-500 transition transform hover:scale-105">
-            One Piece TCG
-        </button>
-    </div>
-
-    <!-- Status de Carregamento -->
-    <div id="loading" class="text-lg font-bold text-yellow-500 animate-pulse mb-4 shrink-0">
-        A sincronizar com o Multiverso... aguarde.
-    </div>
-
-    <!-- 
-        A Tabela de Estatísticas Premium 
-        Foi adicionado flex-1 e min-h-0 para forçar a barra de scroll a ficar AQUI DENTRO!
-    -->
-    <div class="w-full max-w-[95vw] flex-1 min-h-0 overflow-auto bg-slate-800 shadow-2xl rounded-xl border border-slate-700 hidden custom-scrollbar relative" id="container-tabela">
-        <table class="w-full text-sm text-left whitespace-nowrap" id="tabela-dashboard">
-            <!-- O Cabeçalho agora é magnético (sticky top-0) e ficará sempre visível ao descer -->
-            <thead class="sticky top-0 z-40 bg-slate-950 text-slate-300 font-bold uppercase tracking-wider text-xs shadow-md border-b border-slate-700" id="tabela-head">
-                <!-- Injetado pelo JavaScript -->
-            </thead>
-            <tbody class="divide-y divide-slate-700" id="tabela-body">
-                <!-- Injetado pelo JavaScript -->
-            </tbody>
-        </table>
-    </div>
-
     <style>
-        /* A mesma barra de scroll bonita, mas agora aplicada à nossa tabela por dentro */
-        .custom-scrollbar::-webkit-scrollbar { height: 10px; width: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; border-radius: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 8px; }
+        /* Barra de rolagem colada na extrema direita e com design Premium */
+        .custom-scrollbar::-webkit-scrollbar { height: 14px; width: 14px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; } /* Fundo igual à página */
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 8px; border: 3px solid #0f172a; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
+</head>
+<!-- O body agora não tem margens e corta qualquer scroll externo (h-screen overflow-hidden) -->
+<body class="bg-slate-900 text-white font-sans flex flex-col h-screen overflow-hidden">
+    
+    <!-- CABEÇALHO 100% FIXO -->
+    <header class="w-full flex flex-col items-center pt-8 pb-4 shrink-0 bg-slate-900 z-50 border-b border-slate-800 shadow-xl">
+        <div class="text-center mb-5">
+            <h1 class="text-4xl font-extrabold text-yellow-400 mb-1 drop-shadow-md">Sartisfação TCG - Progressão</h1>
+            <p class="text-slate-400 font-medium">Centro de Comando do Multiverso</p>
+        </div>
+
+        <!-- SISTEMA DE ABAS -->
+        <div class="flex justify-center space-x-4 mb-2">
+            <button id="aba-pokemon" onclick="mudarAba('pokemon')" class="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg border-2 border-blue-400 shadow-lg shadow-blue-500/50 transition transform hover:scale-105">
+                Pokémon TCG
+            </button>
+            <button id="aba-onepiece" onclick="mudarAba('onepiece')" class="px-6 py-2 bg-slate-800 text-slate-400 font-bold rounded-lg border-2 border-slate-700 hover:bg-red-900 hover:text-white hover:border-red-500 transition transform hover:scale-105">
+                One Piece TCG
+            </button>
+        </div>
+
+        <!-- Status de Carregamento -->
+        <div id="loading" class="text-lg font-bold text-yellow-500 animate-pulse mt-4">
+            A sincronizar com o Multiverso... aguarde.
+        </div>
+    </header>
+
+    <!-- ÁREA DA TABELA (Com o Scroll na extrema direita) -->
+    <!-- O flex-1 obriga esta área a preencher o resto do ecrã para baixo -->
+    <main class="w-full flex-1 overflow-auto custom-scrollbar bg-slate-900 hidden" id="container-tabela">
+        <!-- Padding interno apenas para a tabela respirar, mas não afeta a barra de rolagem -->
+        <div class="p-6 md:p-8 w-full min-w-max">
+            <table class="w-full text-sm text-left whitespace-nowrap bg-slate-800 shadow-2xl rounded-xl border border-slate-700" id="tabela-dashboard">
+                <!-- Cabeçalho da Tabela Congelado (sticky top-0) -->
+                <thead class="sticky top-0 z-40 bg-slate-950 text-slate-300 font-bold uppercase tracking-wider text-xs shadow-md border-b border-slate-700" id="tabela-head">
+                    <!-- Injetado pelo JavaScript -->
+                </thead>
+                <tbody class="divide-y divide-slate-700" id="tabela-body">
+                    <!-- Injetado pelo JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </main>
 
     <script>
         let dadosGlobais = null;
@@ -86,7 +88,7 @@
                 
                 renderizarTabela();
             } catch (erro) {
-                document.getElementById('loading').innerHTML = `<span class="text-red-500 font-bold flex items-center justify-center">❌ Erro de Ligação: ${erro.message}</span>`;
+                document.getElementById('loading').innerHTML = `<span class="text-red-500 font-bold flex items-center justify-center p-4">❌ Erro de Ligação: ${erro.message}</span>`;
             }
         }
 
@@ -128,7 +130,6 @@
             
             if (idiomasParaMostrar.length === 0) idiomasParaMostrar = ['English'];
 
-            // Cabeçalho - Ajuste fino nas classes para interagir bem com a rolagem vertical
             let headerHTML = '<tr><th class="p-5 bg-slate-950 sticky left-0 z-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.8)] border-r border-slate-700 text-yellow-400">Coleções</th>';
             
             idiomasParaMostrar.forEach(idioma => {
@@ -147,7 +148,6 @@
                 return;
             }
 
-            // Linhas da Tabela
             colecoesFiltradas.forEach(set => {
                 const nomeExibicao = set.nome.replace('One Piece: ', '');
                 
